@@ -29,4 +29,7 @@ $sort_by_time = false;
 // Show only critical and Unknown alerts.
 $hide_warnings = false;
 
+// Show known problems.
+$show_known = true;
+
 // End Config

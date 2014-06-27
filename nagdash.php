@@ -254,17 +254,71 @@ if (count($known_hosts) > 0) {
     if ($sort_by_time) {
         usort($broken_services,'cmp_last_state_change');
     }
-    foreach($broken_services as $service) {
-        if ($service['is_hard']) { $soft_tag = "</blink>"; $blink_tag = "<blink>"; } else { $soft_tag = "(soft)"; $blink_tag = ""; }
-        $controls = build_controls($service['tag'], $service['hostname'], $service['service_name']);
-        echo "<tr>";
-        echo "<td>{$service['hostname']} " . print_tag($service['tag']) . " <span class='controls'>{$controls}</span></td>";
-        echo "<td class='bold {$nagios_service_status_colour[$service['service_state']]}'>{$service['service_name']}<span class='detail'>{$service['detail']}</span></td>";
-        echo "<td class='{$nagios_service_status_colour[$service['service_state']]}'>{$blink_tag}{$nagios_service_status[$service['service_state']]} {$soft_tag}</td>";
-        echo "<td>{$service['duration']}</td>";
-        echo "<td>{$service['current_attempt']}/{$service['max_attempts']}</td>";
-        echo "</tr>";
+    //Find hosts that have more than one service error.
+    $hostErrors = array();
+    foreach($broken_services as $bs){
+
+        $hostErrors[$bs['hostname']][] = $bs;
+
     }
+    //Add the hosts with more than one problem to an array.
+    $overone = array();
+    foreach($hostErrors as $hostName => $errorArray) {
+
+        if(count($errorArray) > 1){
+
+            array_push($overone, $hostName);
+
+        }
+
+    }
+
+    foreach($broken_services as $service) {
+
+        //If the host doesn't have more than one problem.
+	    if (!in_array($service['hostname'], $overone)) {
+
+            if ($service['is_hard']) { $soft_tag = "</blink>"; $blink_tag = "<blink>"; } else { $soft_tag = "(soft)"; $blink_tag = ""; }
+            $controls = build_controls($service['tag'], $service['hostname'], $service['service_name']);
+            echo "<tr>";
+            echo "<td>{$service['hostname']} " . print_tag($service['tag']) . " <span class='controls'>{$controls}</span></td>";
+            echo "<td class='bold {$nagios_service_status_colour[$service['service_state']]}'>{$service['service_name']}<span class='detail'>{$service['detail']}</span></td>";
+            echo "<td class='{$nagios_service_status_colour[$service['service_state']]}'>{$blink_tag}{$nagios_service_status[$service['service_state']]} {$soft_tag}</td>";
+            echo "<td>{$service['duration']}</td>";
+            echo "<td>{$service['current_attempt']}/{$service['max_attempts']}</td>";
+            echo "</tr>";
+
+        }
+
+	}
+    //If the host has more than one problem.
+    foreach ($overone as $host) {
+
+        $hosterrors = array();
+        //Grab all of the hosts problems into an array.
+        foreach ($hostErrors[$host] as $error) {
+
+            $servicename = $error['service_name'];
+            $servicedetail = $error['detail'];
+
+            array_push($hosterrors, "$servicename => $servicedetail");
+
+        }
+        //Turn the problems array into a string.
+        $hosterrors = implode("<br />", $hosterrors);
+        //Update nagdash with the hosts problems, all in one lovely alert box.
+        if ($hostErrors[$host][0]['is_hard']) { $soft_tag = "</blink>"; $blink_tag = "<blink>"; } else { $soft_tag = "(soft)"; $blink_tag = ""; }
+        $controls = build_controls($hostErrors[$host][0]['tag'], $hostErrors[$host][0]['hostname'], $hosterrors);
+        echo "<tr>";
+        echo "<td>{$hostErrors[$host][0]['hostname']} " . print_tag($hostErrors[$host][0]['tag']) . " <span class='controls'>{$controls}</span></td>";
+        echo "<td class='normal {$nagios_service_status_colour[$hostErrors[$host][0]['service_state']]}'>{$hosterrors}</td>";
+        echo "<td class='{$nagios_service_status_colour[$hostErrors[$host][0]['service_state']]}'>{$blink_tag}{$nagios_service_status[$hostErrors[$host][0]['service_state']]} {$soft_tag}</td>";
+        echo "<td>{$hostErrors[$host][0]['duration']}</td>";
+        echo "<td>{$hostErrors[$host][0]['current_attempt']}/{$hostErrors[$host][0]['max_attempts']}</td>";
+        echo "</tr>";
+
+    }
+
 ?>
     </table>
 <?php } else { ?>
@@ -275,6 +329,7 @@ if ($sort_by_time) {
     usort($known_services,'cmp_last_state_change');
 }
 
+if ($show_known == true) {
 if (count($known_services) > 0) { ?>
     <h4>Known Service Problems</h4>
     <table class="widetable known_service" id="known_services">
@@ -296,10 +351,13 @@ if (count($known_services) > 0) { ?>
 ?>
 
     </table>
-<?php } ?>
+
+
+<?php }} ?>
 
     </div>
 </div>
+
 
 <?php
 
@@ -358,3 +416,4 @@ function build_controls($tag, $host, $service) {
 }
 
 ?>
+

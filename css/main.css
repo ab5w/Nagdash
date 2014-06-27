@@ -1,5 +1,4 @@
-body                {
-    font-family: "HelveticaNeue-Medium", Helvetica, Arial, sans-serif; margin: 5px}
+body                { font-family: "HelveticaNeue-Medium", Helvetica, Arial, sans-serif; margin: 5px}
 h3                  { margin-top: 3px; margin-bottom: 3px; font-size: 1.5em }
 table,td            { border: none; padding: 2px; border-spacing: 2px; font-size: 1.1em }
 table               { border: 1px solid #c6c6c6; background-color: #F0F0F0; border-collapse: separate;.
@@ -8,6 +7,7 @@ table               { border: 1px solid #c6c6c6; background-color: #F0F0F0; bord
 th                  { border: 1px black solid; background-color: #D8D8D8 }
 .widetable          { width: 99%; clear: both }
 .bold               { font-weight: bold; }
+.normal             { font-weight: normal; font-size: 90%;}
 .status_green       { background-color: #269926; color: white; padding: 3px }
 .status_red         { background-color: #FF4040; color: white; padding: 3px }
 .status_yellow      { background-color: #FFDE40; color: black; padding: 3px }
